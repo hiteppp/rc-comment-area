@@ -13,3 +13,5 @@ export interface UserType {
   name: string;
   avatar: string;
 }
+
+export type ParamsType = Record<string, any> | {}

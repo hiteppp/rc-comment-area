@@ -3,22 +3,19 @@ import { Comment, List, Avatar, Form, Button, Input } from "antd";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale/zh-CN";
 import { CommentType } from "./interface";
+import { request } from "./api";
 const { TextArea } = Input;
 
 const CommentSection = () => {
   const [comments, setComments] = useState<CommentType[]>();
   const [value, setValue] = useState("");
   const [form] = Form.useForm();
+  const init = async () => {
+    let res = await request("getComments", { count: 10, startIndex: 0 });
+    setComments(res.data.data.comments);
+  };
   useEffect(() => {
-    fetch(
-      `http://8.152.163.66:3003/comment/top-level-comments?count=${10}&startIndex=${10}`
-    )
-      .then((res) => {
-        return res.json();
-      })
-      .then((res) => {
-        setComments(res.data.comments);
-      });
+    init();
   }, []);
   const actions = [<span key="comment-basic-reply-to">Reply to</span>];
   // 处理提交评论

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Comment, List, Avatar, Form, Button, Input } from "antd";
-import { formatDistanceToNow } from "date-fns";
-import { zhCN } from "date-fns/locale/zh-CN";
+// import { formatDistanceToNow } from "date-fns";
+// import { zhCN } from "date-fns/locale/zh-CN";
 import { CommentType } from "./interface";
 import { request } from "./api";
 const { TextArea } = Input;
@@ -19,14 +19,14 @@ const CommentSection = () => {
   }, []);
   const actions = [<span key="comment-basic-reply-to">Reply to</span>];
   // 处理提交评论
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!value.trim()) return;
 
-    const newComment = {
-      comment_id: 100,
+    const newComment: CommentType = {
       comment_pics: [],
       content: value,
       parent_comment_id: 0,
+      like_nums: 0,
       user: {
         id: 2,
         name: "Join",
@@ -34,47 +34,34 @@ const CommentSection = () => {
       },
     };
 
-    //@ts-ignore
+    // @ts-ignore
     setComments([newComment, ...comments]);
     setValue("");
-    //向后端发请求
-    fetch("http://8.152.163.66:3003/comment/createCommnet", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
+    const params = {
+      user_id: newComment.user.id,
+      createCommentDto: {
+        parent_comment_id: newComment.parent_comment_id,
+        content: value,
+        like_nums: newComment.like_nums,
+        comment_pics: newComment.comment_pics,
       },
-      body: JSON.stringify({
-        entity: {
-          parent_comment_id: 0,
-          content: value,
-          like_nums: 0,
-          comment_pics: [],
-        },
-        user_id: 1,
-      }),
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("网络响应状态异常");
-        }
-        return response.json();
-      })
-      .then((data) => {
-        console.log(data);
-      })
-      .catch((error) => {
-        console.error("请求出错:", error);
-      });
+    };
+    try {
+      await request("createComment", params);
+    } catch (error) {
+      console.log(error);
+    }
+
     form.resetFields();
   };
 
-  // 格式化时间显示
-  const formatTime = (time: any) => {
-    return formatDistanceToNow(new Date(time), {
-      addSuffix: true,
-      locale: zhCN,
-    });
-  };
+  // // 格式化时间显示
+  // const formatTime = (time: any) => {
+  //   return formatDistanceToNow(new Date(time), {
+  //     addSuffix: true,
+  //     locale: zhCN,
+  //   });
+  // };
 
   return (
     <div style={{ maxWidth: 800, margin: "0 auto", height: "2000px" }}>
@@ -123,7 +110,6 @@ const CommentSection = () => {
               actions={actions}
               avatar={<Avatar src={item.user.avatar} />}
               content={item.content}
-              datetime={formatTime(item.updated_at)}
             ></Comment>
           </li>
         )}

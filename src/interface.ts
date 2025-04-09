@@ -1,9 +1,10 @@
 export interface CommentType {
-  comment_id: number;
+  comment_id?: number;
   created_at?: string;
   updated_at?: string;
   comment_pics: any[];
   content: string;
+  like_nums:number;
   parent_comment_id: number;
   user: UserType;
 }

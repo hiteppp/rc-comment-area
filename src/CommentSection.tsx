@@ -17,7 +17,14 @@ const CommentSection = () => {
   useEffect(() => {
     init();
   }, []);
-  const actions = [<span key="comment-basic-reply-to">Reply to</span>];
+  const deleteCommentClick = async (comment_id: number) => {
+    try {
+      await request("deleteComment", { comment_id });
+      console.log("删除成功");
+    } catch (error) {
+      console.log("error", error);
+    }
+  };
   // 处理提交评论
   const handleSubmit = async () => {
     if (!value.trim()) return;
@@ -73,7 +80,6 @@ const CommentSection = () => {
           zIndex: 8888,
           backgroundColor: "white",
         }}
-        actions={actions}
         avatar={<Avatar src="https://picsum.photos/100/100" alt="当前用户" />}
         content={
           <Form form={form}>
@@ -107,7 +113,17 @@ const CommentSection = () => {
         renderItem={(item: CommentType) => (
           <li>
             <Comment
-              actions={actions}
+              actions={[
+                <span key="comment-basic-reply-to">回复</span>,
+                <span
+                  key="comment-basic-delete-to"
+                  //@ts-ignore
+                  onClick={() => deleteCommentClick(item.comment_id)}
+                >
+                  删除
+                </span>,
+              ]}
+              author={item.user.name}
               avatar={<Avatar src={item.user.avatar} />}
               content={item.content}
             ></Comment>

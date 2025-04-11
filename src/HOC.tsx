@@ -7,7 +7,7 @@ const HOC = (Component:any) => ({list, onRequest, ...props}:any) => {
 
   const state = useReactive<any>({
     data: [], //渲染的数据
-    scrollAllHeight: '100vh', // 容器的初始高度
+    scrollAllHeight: '80vh', // 容器的初始高度
     listHeight: 0, //列表高度
     itemHeight: 0, // 子组件的高度
     renderCount: 0, // 需要渲染的数量
@@ -41,7 +41,7 @@ const HOC = (Component:any) => ({list, onRequest, ...props}:any) => {
     for (let i = 0; i < list.length; i++) {
       //@ts-ignore
       data.push({
-        index: i,
+        index: list[i].comment_id,
         height: state.initItemHeight,
         top: i * state.initItemHeight,
         bottom: (i + 1) * state.initItemHeight,
@@ -61,7 +61,7 @@ const HOC = (Component:any) => ({list, onRequest, ...props}:any) => {
     const scrollAllHeight = allRef.current.offsetHeight
 
     // 列表高度：positions最后一项的bottom
-    const listHeight = state.positions[state.positions.length - 1].bottom;
+    const listHeight = state.positions[state.positions.length - 1]?.bottom;
 
     //渲染节点的数量
     const renderCount = Math.ceil(scrollAllHeight / ItemHeight) 
@@ -84,11 +84,12 @@ const HOC = (Component:any) => ({list, onRequest, ...props}:any) => {
     if(nodes.length === 0) return
     console.log(nodes);
     
-    nodes.forEach((node: HTMLDivElement) => {
+    nodes.forEach((node: HTMLDivElement,index:number) => {
       if (!node) return;
       const rect = node.getBoundingClientRect(); // 获取对应的元素信息
+      //console.log('node',node);
       
-      const index = +node.id; // 可以通过id，来取到对应的索引
+      console.log('state.positions[index]',state.positions,index);
       
       const oldHeight = state.positions[index].height // 旧的高度
       const dHeight = oldHeight - rect.height  // 差值
@@ -98,22 +99,38 @@ const HOC = (Component:any) => ({list, onRequest, ...props}:any) => {
         state.positions[index].dHeight = dHeight //将差值保留
       }
     });
-
     //  重新计算整体的高度
-    const startId = +nodes[0].id
+    const startId = +nodes[0].index
+    console.log('nodesssss',nodes,nodes[0].id,state.positions);
 
     const positionLength = state.positions.length;
-    let startHeight = state.positions[startId].dHeight;
-    state.positions[startId].dHeight = 0;
+    let startHeight = state.positions[0].dHeight;
+    state.positions[0].dHeight = 0;
 
-    for (let i = startId + 1; i < positionLength; ++i) {
-      const item = state.positions[i];
-      state.positions[i].top = state.positions[i - 1].bottom;
-      state.positions[i].bottom = state.positions[i].bottom - startHeight;
-      if (item.dHeight !== 0) {
-        startHeight += item.dHeight;
-        item.dHeight = 0;
+    // for (let i = startId + 1; i < positionLength; ++i) {
+    //   const item = state.positions[i];
+    //   state.positions[i].top = state.positions[i - 1].bottom;
+    //   state.positions[i].bottom = state.positions[i].bottom - startHeight;
+    //   if (item.dHeight !== 0) {
+    //     startHeight += item.dHeight;
+    //     item.dHeight = 0;
+    //   }
+    // }
+    let prePart = null;
+    for (let part of state.positions) {
+      //   state.positions[i].top = state.positions[i - 1].bottom;
+      part.top = prePart ? prePart.bottom : state.positions[0].bottom;
+      //   state.positions[i].bottom = state.positions[i].bottom - startHeight;
+      part.bottom = part.bottom - startHeight;
+      //   if (item.dHeight !== 0) {
+      //     startHeight += item.dHeight;
+      //     item.dHeight = 0;
+      //   }
+      if (part.dHeight !== 0) {
+        startHeight += part.dHeight;
+        part.dHeight = 0;
       }
+      prePart = part;
     }
 
     // 重新计算子列表的高度
@@ -129,6 +146,7 @@ const HOC = (Component:any) => ({list, onRequest, ...props}:any) => {
   }, [state.end])
 
   useEventListener('scroll', () => {
+console.log('liststttttt',list);
 
     // 顶部高度
     const { scrollTop, clientHeight, scrollHeight } = scrollRef.current
@@ -151,6 +169,8 @@ const HOC = (Component:any) => ({list, onRequest, ...props}:any) => {
     let start:number = 0;
     let end:number = list.length - 1;
     let tempIndex = null;
+    console.log('binarySearch',start,end);
+    
     while(start <= end){
       let midIndex = parseInt(String( (start + end)/2));
       let midValue = list[midIndex].bottom;
@@ -170,25 +190,52 @@ const HOC = (Component:any) => ({list, onRequest, ...props}:any) => {
   }
 
 
-  return <div ref={allRef}>
-    <div
-      style={{height: state.scrollAllHeight, overflow: 'scroll', position: 'relative'}}
-      ref={scrollRef} 
-    >
-      {/* 占位，列表的总高度，用于生成滚动条 */}
-      <div style={{ height: state.listHeight, position: 'absolute', left: 0, top: 0, right: 0 }}></div> 
-      {/* 内容区域 */}
-      <div ref={ref} style={{ transform: `translate3d(0, ${state.currentOffset}px, 0)`, position: 'relative', left: 0, top: 0, right: 0}}>
-        {/* 渲染区域 */}
-        {
-          state.data.map((item:any) =>  <div id={String(item.id)} key={item.id}>
-            {/* 子组件 */}
-            <Component id={item.content} {...props} index={item.id} />
-          </div>)
-        }
+  return (
+    <div ref={allRef}>
+      <div
+        style={{
+          height: state.scrollAllHeight,
+          overflow: "scroll",
+          position: "relative",
+        }}
+        ref={scrollRef}
+      >
+        {/* 占位，列表的总高度，用于生成滚动条 */}
+        <div
+          style={{
+            height: state.listHeight,
+            position: "absolute",
+            left: 0,
+            top: 0,
+            right: 0,
+          }}
+        ></div>
+        {/* 内容区域 */}
+        <div
+          ref={ref}
+          style={{
+            transform: `translate3d(0, ${state.currentOffset}px, 0)`,
+            position: "relative",
+            left: 0,
+            top: 0,
+            right: 0,
+          }}
+        >
+          {/* 渲染区域 */}
+          {state.data.map((item: any) => {
+            //console.log('item',item.comment_id,item);
+            
+            return (
+              <div id={String(item.comment_id)} key={item.comment_id}>
+                {/* 子组件 */}
+                <Component item={item} />
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
-  </div>
+  );
 }
 
 export default HOC;

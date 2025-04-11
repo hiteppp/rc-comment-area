@@ -1,18 +1,23 @@
 import { useEffect, useState } from "react";
-import { Comment, List, Avatar, Form, Button, Input } from "antd";
+import { Comment, Avatar, Form, Button, Input } from "antd";
 // import { formatDistanceToNow } from "date-fns";
 // import { zhCN } from "date-fns/locale/zh-CN";
 import { CommentType } from "./interface";
 import { request } from "./api";
+import CommentItemHoc from "./ComentItem";
+
 const { TextArea } = Input;
 
 const CommentSection = () => {
   const [comments, setComments] = useState<CommentType[]>();
   const [value, setValue] = useState("");
   const [form] = Form.useForm();
+  const [loading,setLoading] = useState(false)
   const init = async () => {
+    setLoading(true)
     let res = await request("getComments", { count: 10, startIndex: 0 });
     setComments(res.data.data.comments);
+    setLoading(false)
   };
   useEffect(() => {
     init();
@@ -70,15 +75,15 @@ const CommentSection = () => {
   //   });
   // };
 
-  return (
-    <div style={{ maxWidth: 800, margin: "0 auto", height: "2000px" }}>
+  return !loading ? <div style={{ maxWidth: 800, margin: "0 auto", height: "100vh",paddingLeft:'20px',paddingRight:'20px'}}>
       {/* 评论表单 */}
       <Comment
         style={{
           position: "sticky",
           top: 0,
           zIndex: 8888,
-          backgroundColor: "white",
+          backgroundColor: "skyblue",
+          height:'20vh',
         }}
         avatar={<Avatar src="https://picsum.photos/100/100" alt="当前用户" />}
         content={
@@ -104,34 +109,8 @@ const CommentSection = () => {
           </Form>
         }
       />
-
-      {/* 评论列表 */}
-      <List
-        header={`XX 条评论`}
-        itemLayout="horizontal"
-        dataSource={comments}
-        renderItem={(item: CommentType) => (
-          <li>
-            <Comment
-              actions={[
-                <span key="comment-basic-reply-to">回复</span>,
-                <span
-                  key="comment-basic-delete-to"
-                  //@ts-ignore
-                  onClick={() => deleteCommentClick(item.comment_id)}
-                >
-                  删除
-                </span>,
-              ]}
-              author={item.user.name}
-              avatar={<Avatar src={item.user.avatar} />}
-              content={item.content}
-            ></Comment>
-          </li>
-        )}
-      />
-    </div>
-  );
-};
+      <CommentItemHoc list={comments || []}/>
+    </div> : <h2>Loading...</h2>
+  }
 
 export default CommentSection;

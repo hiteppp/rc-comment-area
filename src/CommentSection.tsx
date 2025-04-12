@@ -15,7 +15,7 @@ const CommentSection = () => {
   const [loading,setLoading] = useState(false)
   const init = async () => {
     setLoading(true)
-    let res = await request("getComments", { count: 10, startIndex: 0 });
+    let res = await request("getComments", { count: 20, startIndex: 0 });
     setComments(res.data.data.comments);
     setLoading(false)
   };

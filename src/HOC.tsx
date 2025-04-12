@@ -100,38 +100,23 @@ const HOC = (Component:any) => ({list, onRequest, ...props}:any) => {
       }
     });
     //  重新计算整体的高度
-    const startId = +nodes[0].index
+    const startId = 0
     console.log('nodesssss',nodes,nodes[0].id,state.positions);
 
     const positionLength = state.positions.length;
     let startHeight = state.positions[0].dHeight;
     state.positions[0].dHeight = 0;
 
-    // for (let i = startId + 1; i < positionLength; ++i) {
-    //   const item = state.positions[i];
-    //   state.positions[i].top = state.positions[i - 1].bottom;
-    //   state.positions[i].bottom = state.positions[i].bottom - startHeight;
-    //   if (item.dHeight !== 0) {
-    //     startHeight += item.dHeight;
-    //     item.dHeight = 0;
-    //   }
-    // }
-    let prePart = null;
-    for (let part of state.positions) {
-      //   state.positions[i].top = state.positions[i - 1].bottom;
-      part.top = prePart ? prePart.bottom : state.positions[0].bottom;
-      //   state.positions[i].bottom = state.positions[i].bottom - startHeight;
-      part.bottom = part.bottom - startHeight;
-      //   if (item.dHeight !== 0) {
-      //     startHeight += item.dHeight;
-      //     item.dHeight = 0;
-      //   }
-      if (part.dHeight !== 0) {
-        startHeight += part.dHeight;
-        part.dHeight = 0;
+    for (let i = startId + 1; i < positionLength; ++i) {
+      const item = state.positions[i];
+      state.positions[i].top = state.positions[i - 1].bottom;
+      state.positions[i].bottom = state.positions[i].bottom - startHeight;
+      if (item.dHeight !== 0) {
+        startHeight += item.dHeight;
+        item.dHeight = 0;
       }
-      prePart = part;
     }
+
 
     // 重新计算子列表的高度
     state.itemHeight = state.positions[positionLength - 1].bottom;

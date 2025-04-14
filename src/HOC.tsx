@@ -2,9 +2,11 @@ import { useEffect, useRef } from 'react';
 import useReactive from './hooks/useReactive'
 import useEventListener from './hooks/useEventListener'
 import useCreation from './hooks/useCreation'
-
-const HOC = (Component:any) => ({list, onRequest, ...props}:any) => {
-
+let page = 1
+const HOC = (Component:any) => ({list, onRequest, passBottomData,isOver}:any) => {
+  console.log('listsssss',list);
+  
+  const loadingRef = useRef(null)
   const state = useReactive<any>({
     data: [], //渲染的数据
     scrollAllHeight: '80vh', // 容器的初始高度
@@ -36,7 +38,7 @@ const HOC = (Component:any) => ({list, onRequest, ...props}:any) => {
 
   const initPositions =  () => {
     const data = []
-    console.log('list',list);
+   // console.log('list',list);
     
     for (let i = 0; i < list.length; i++) {
       //@ts-ignore
@@ -51,7 +53,35 @@ const HOC = (Component:any) => ({list, onRequest, ...props}:any) => {
     state.positions = [...data]
   }
 
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            // 当 loading 元素进入视口时，发起请求加载更多数据
+            console.log("isOverrrrrr", isOver);
 
+            if (isOver) return;
+            passBottomData(true);
+          }
+        });
+      },
+      {
+        root: null,
+        threshold: 0,
+      }
+    );
+
+    if (loadingRef.current) {
+      observer.observe(loadingRef.current);
+    }
+
+    return () => {
+      // if (loadingRef.current) {
+      //     observer.unobserve(loadingRef.current);
+      // }
+    };
+  }, []);
   useEffect(() => {
 
     // 子列表高度：为默认的预计高度
@@ -70,6 +100,8 @@ const HOC = (Component:any) => ({list, onRequest, ...props}:any) => {
     state.end = renderCount + 1
     state.listHeight = listHeight
     state.itemHeight = ItemHeight
+    console.log('state.start, state.end',state.start, state.end);
+    
     state.data = list.slice(state.start, state.end)
   }, [allRef, list.length])
 
@@ -89,9 +121,9 @@ const HOC = (Component:any) => ({list, onRequest, ...props}:any) => {
       const rect = node.getBoundingClientRect(); // 获取对应的元素信息
       //console.log('node',node);
       
-      console.log('state.positions[index]',state.positions,index);
+      console.log('state.positions[index]',state.positions[index].height);
       
-      const oldHeight = state.positions[index].height // 旧的高度
+      const oldHeight = state.positions[index].height | 50 // 旧的高度
       const dHeight = oldHeight - rect.height  // 差值
       if(dHeight){
         state.positions[index].height = rect.height //真实高度
@@ -101,7 +133,7 @@ const HOC = (Component:any) => ({list, onRequest, ...props}:any) => {
     });
     //  重新计算整体的高度
     const startId = 0
-    console.log('nodesssss',nodes,nodes[0].id,state.positions);
+    //console.log('nodesssss',nodes,nodes[0].id,state.positions);
 
     const positionLength = state.positions.length;
     let startHeight = state.positions[0].dHeight;
@@ -131,22 +163,23 @@ const HOC = (Component:any) => ({list, onRequest, ...props}:any) => {
   }, [state.end])
 
   useEventListener('scroll', () => {
-console.log('liststttttt',list);
 
     // 顶部高度
     const { scrollTop, clientHeight, scrollHeight } = scrollRef.current
     state.start =  binarySearch(state.positions, scrollTop);
     state.end  =  state.start + state.renderCount + 1
-    console.log('state',state.start,state.end);
+    //console.log('state',state.start,state.end);
     
     // 计算偏移量
     state.currentOffset = state.start > 0 ? state.positions[state.start - 1].bottom : 0
 
     // 滚动条距离的高度
-    const button = scrollHeight - clientHeight - scrollTop
-    if(button === 0 && onRequest){
-      onRequest()
-    }
+   // const button = scrollHeight - clientHeight - scrollTop
+    // console.log('button',button);
+    
+    // if(button === 0 && onRequest){
+    //   onRequest(page++)
+    // }
   }, scrollRef)
 
   // 二分查找
@@ -154,7 +187,7 @@ console.log('liststttttt',list);
     let start:number = 0;
     let end:number = list.length - 1;
     let tempIndex = null;
-    console.log('binarySearch',start,end);
+    //console.log('binarySearch',start,end);
     
     while(start <= end){
       let midIndex = parseInt(String( (start + end)/2));
@@ -199,17 +232,15 @@ console.log('liststttttt',list);
         <div
           ref={ref}
           style={{
-            transform: `translate3d(0, ${state.currentOffset}px, 0)`,
-            position: "relative",
-            left: 0,
-            top: 0,
-            right: 0,
+            //transform: `translate3d(0, ${state.currentOffset}px, 0)`,
+            // position: "relative",
+            // left: 0,
+            // top: 0,
+            // right: 0,
           }}
         >
           {/* 渲染区域 */}
           {state.data.map((item: any) => {
-            //console.log('item',item.comment_id,item);
-            
             return (
               <div id={String(item.comment_id)} key={item.comment_id}>
                 {/* 子组件 */}
@@ -218,7 +249,19 @@ console.log('liststttttt',list);
             );
           })}
         </div>
+        <div
+        ref={loadingRef}
+        style={{
+          textAlign: "center",
+          marginTop: "20px",
+          backgroundColor: "aqua",
+          height: "20px",
+        }}
+      >
+        加载更多...
       </div>
+      </div>
+
     </div>
   );
 }

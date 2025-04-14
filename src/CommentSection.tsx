@@ -1,27 +1,58 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState,useRef } from "react";
 import { Comment, Avatar, Form, Button, Input } from "antd";
 // import { formatDistanceToNow } from "date-fns";
 // import { zhCN } from "date-fns/locale/zh-CN";
 import { CommentType } from "./interface";
 import { request } from "./api";
 import CommentItemHoc from "./ComentItem";
+import { fetchMoreData } from "./api/getData";
 
 const { TextArea } = Input;
-
+let page = 1
 const CommentSection = () => {
   const [comments, setComments] = useState<CommentType[]>();
   const [value, setValue] = useState("");
   const [form] = Form.useForm();
   const [loading,setLoading] = useState(false)
-  const init = async () => {
+  const [isOver,setIsOver] = useState(false)
+  const commentRef = useRef([])
+  const passBottomData = async(isBottom: boolean) => {
+    console.log('isBottom',isBottom,comments);
+    
+    if(!isBottom) return;
+    try {
+      let res = await fetchMoreData(page++)
+      console.log('resssssss',res);
+      
+      if(res.comments.length === 0) {
+        console.log('res.comments.length',res.comments.length);
+        
+        setIsOver(true)
+              //@ts-ignore
+      setComments(commentRef.current);
+        return 
+      }
+      //@ts-ignore
+      commentRef.current = [...commentRef.current,...res.comments]
+      setComments(commentRef.current);
+    } catch (error) {
+      console.log('err4444444',error);
+      
+    }
+    
+  };
+
+  const init = async () => { 
     setLoading(true)
-    let res = await request("getComments", { count: 20, startIndex: 0 });
+    let res = await request("getComments", { count: 10, startIndex: 0 });
     setComments(res.data.data.comments);
+    commentRef.current = res.data.data.comments
     setLoading(false)
   };
   useEffect(() => {
     init();
   }, []);
+
   const deleteCommentClick = async (comment_id: number) => {
     try {
       await request("deleteComment", { comment_id });
@@ -75,7 +106,16 @@ const CommentSection = () => {
   //   });
   // };
 
-  return !loading ? <div style={{ maxWidth: 800, margin: "0 auto", height: "100vh",paddingLeft:'20px',paddingRight:'20px'}}>
+  return !loading ? (
+    <div
+      style={{
+        maxWidth: 800,
+        margin: "0 auto",
+        height: "100vh",
+        paddingLeft: "20px",
+        paddingRight: "20px",
+      }}
+    >
       {/* 评论表单 */}
       <Comment
         style={{
@@ -83,7 +123,7 @@ const CommentSection = () => {
           top: 0,
           zIndex: 8888,
           backgroundColor: "skyblue",
-          height:'20vh',
+          height: "20vh",
         }}
         avatar={<Avatar src="https://picsum.photos/100/100" alt="当前用户" />}
         content={
@@ -109,8 +149,12 @@ const CommentSection = () => {
           </Form>
         }
       />
-      <CommentItemHoc list={comments || []}/>
-    </div> : <h2>Loading...</h2>
+      <CommentItemHoc list={comments || []} passBottomData={passBottomData} isOver={isOver}/>
+
+    </div>
+  ) : (
+    <h2>Loading...</h2>
+  );
   }
 
 export default CommentSection;

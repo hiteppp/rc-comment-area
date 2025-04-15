@@ -3,7 +3,7 @@ import { CommentType } from "./interface";
 import HOC from "./HOC";
 // 子组件
 const CommentItem: React.FC<{ item: CommentType }> = ({ item }) => {
-  //console.log('item',item);
+  console.log('item',item);
 
   return (
     <div>

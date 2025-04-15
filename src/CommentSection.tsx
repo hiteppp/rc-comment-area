@@ -1,9 +1,14 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { CommentType } from "./interface";
 import { fetchMoreData } from "./api/getData";
+import ComentItem from "./ComentItem";
+import InfiniteScroll from "./components/InfiniteScroll";
+import PullToRefresh from "./components/PullToRefresh";
 
 export default () => {
   const [comments, setComments] = useState<CommentType[]>([]);
+  const [hasMore, setHasMore] = useState<boolean>(true);
+  const pn = useRef<number>(1);
   const init = async () => {
     try {
       let res = await fetchMoreData(0);
@@ -12,13 +17,35 @@ export default () => {
       console.log("err", error);
     }
   };
-  useEffect(()=>{init()},[])
+  useEffect(() => {
+    init();
+  }, []);
+  const loadMoreHandler = () =>
+    new Promise((r) => {
+      fetchMoreData(pn.current++).then((res) => {
+        if (res.comments.length > 0) {
+          setHasMore(true);
+          setComments((oldComments) => [...oldComments, ...res.comments]);
+        } else {
+          setHasMore(false);
+        }
+      });
+      r(comments);
+    });
 
   return (
     <div>
-      {comments.map((comment: CommentType) => {
-        return <p>{JSON.stringify(comment)}</p>;
-      })}
+      {" "}
+      <PullToRefresh
+        onRefresh={() => {
+          console.log("onRefresh");
+        }}
+      >
+        {comments.map((comment: CommentType) => {
+          return <ComentItem item={comment} key={comment.comment_id} />;
+        })}
+      </PullToRefresh>
+      <InfiniteScroll hasMore={hasMore} loadMore={loadMoreHandler} />
     </div>
   );
 };

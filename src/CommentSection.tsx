@@ -4,7 +4,7 @@ import { fetchMoreData } from "./api/getData";
 import ComentItem from "./ComentItem";
 import InfiniteScroll from "./components/InfiniteScroll";
 import PullToRefresh from "./components/PullToRefresh";
-
+import { List } from "antd";
 export default () => {
   const [comments, setComments] = useState<CommentType[]>([]);
   const [hasMore, setHasMore] = useState<boolean>(true);
@@ -41,9 +41,12 @@ export default () => {
           console.log("onRefresh");
         }}
       >
-        {comments.map((comment: CommentType) => {
-          return <ComentItem item={comment} key={comment.comment_id} />;
-        })}
+        <List style={{ minHeight: "100vh",overflow:'scroll' }}>
+          {" "}
+          {comments.map((comment: CommentType) => {
+            return <ComentItem item={comment} key={comment.comment_id} />;
+          })}
+        </List>
       </PullToRefresh>
       <InfiniteScroll hasMore={hasMore} loadMore={loadMoreHandler} />
     </div>

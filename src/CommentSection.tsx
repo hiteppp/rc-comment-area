@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CommentType } from "./interface";
 import { fetchMoreData } from "./api/getData";
 import ComentItem from "./ComentItem";
@@ -25,28 +25,34 @@ export default () => {
       fetchMoreData(pn.current++).then((res) => {
         if (res.comments.length > 0) {
           setHasMore(true);
-          setComments((oldComments) => [...oldComments, ...res.comments]);
+          setComments((oldComments) => {
+            if(oldComments.length >= 30){
+              return [...oldComments.slice(10), ...res.comments]
+            }else{
+              return [...oldComments, ...res.comments]
+            }
+          });
         } else {
           setHasMore(false);
         }
       });
       r(comments);
     });
-
+  const PullToLoadMore = () => {
+    console.log('page',pn.current);
+    
+  }
   return (
     <div>
       {" "}
       <PullToRefresh
-        onRefresh={() => {
-          console.log("onRefresh");
-        }}
+        onRefresh={PullToLoadMore}
       >
-        <List style={{ minHeight: "100vh",overflow:'scroll' }}>
-          {" "}
+        <div style={{ minHeight: "100vh" }}>
           {comments.map((comment: CommentType) => {
             return <ComentItem item={comment} key={comment.comment_id} />;
           })}
-        </List>
+        </div>
       </PullToRefresh>
       <InfiniteScroll hasMore={hasMore} loadMore={loadMoreHandler} />
     </div>

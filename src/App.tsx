@@ -1,7 +1,8 @@
-import CommentSection from "./CommentSection";
+import Waterfall from "./components/Waterfall";
+
 
 const App = () => {
-  return <CommentSection />;
+  return <Waterfall />;
 };
 
 export default App;

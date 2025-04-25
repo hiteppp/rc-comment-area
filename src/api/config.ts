@@ -17,4 +17,8 @@ export const apiConfig: ApiConfigType = {
     path: "/comment/top-level-comments",
     methods: "get",
   },
+  randomImages: {
+    path: '/randomImages',
+    methods:'get'
+  }
 };

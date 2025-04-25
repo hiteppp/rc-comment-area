@@ -25,6 +25,8 @@ export const usePullToRefresh = (onRefresh: () => void) => {
   useEffect(() => {
     if (!containerRef.current) return () => {};
     containerRef.current.ontouchstart = (e) => {
+      console.log('eeeee',e);
+      
       e.preventDefault();
       if (document.documentElement.scrollTop === 0) {
         y.current = e.touches[0].pageY;

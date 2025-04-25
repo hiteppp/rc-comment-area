@@ -2,7 +2,7 @@ import axios from "axios";
 import { apiConfig } from "./config";
 import { ParamsType } from "../interface";
 const instance = axios.create({
-  baseURL: "http://8.152.163.66:3003",
+  baseURL: "http://localhost:3000",
   timeout: 3000,
 });
 

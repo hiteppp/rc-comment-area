@@ -11,3 +11,12 @@ export const fetchMoreData = async (page: number) => {
     console.log("err", error);
   }
 };
+
+export const fetchMoreImages = async () => {
+  try {
+    let res = await request("randomImages", {});
+    return res.data.data;
+  } catch (error) {
+    console.log("err", error);
+  }
+};

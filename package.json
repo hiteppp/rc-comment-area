@@ -12,10 +12,13 @@
   "dependencies": {
     "@ant-design/icons": "^6.0.0",
     "@types/lodash": "^4.17.16",
+    "@vitejs/plugin-react": "^4.4.1",
     "antd": "4.24.12",
     "antd-mobile": "^5.39.0",
     "axios": "^1.8.4",
     "date-fns": "^4.1.0",
+    "form-render": "1",
+    "less": "^4.3.0",
     "loadsh": "^0.0.4",
     "lodash": "^4.17.21",
     "nanoid": "^5.1.5",

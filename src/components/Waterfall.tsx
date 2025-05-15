@@ -13,7 +13,7 @@ const Waterfall: React.FC = () => {
     []
   );
   const [loading, setLoading] = useState(false);
-  const [hasMore, setHasMore] = useState<boolean>(true);
+  const [hasMore, _setHasMore] = useState<boolean>(true);
   const [containerHeight, setContainerHeight] = useState(0);
   const imgWidth = 220;
   const [imageList, setImageList] = useState([]);

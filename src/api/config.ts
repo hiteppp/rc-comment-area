@@ -18,7 +18,11 @@ export const apiConfig: ApiConfigType = {
     methods: "get",
   },
   randomImages: {
-    path: '/randomImages',
-    methods:'get'
-  }
+    path: "/randomImages",
+    methods: "get",
+  },
+  test: {
+    path: "/test",
+    methods: "get",
+  },
 };
